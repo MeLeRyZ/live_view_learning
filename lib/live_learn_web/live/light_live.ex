@@ -34,7 +34,7 @@ defmodule LiveLearnWeb.LightLive do
           </button>
 
           <button phx-click="rando">
-              <img src="images/phone.svg">
+              <img src="images/q_mark.png">
           </button>
 
       </div>
