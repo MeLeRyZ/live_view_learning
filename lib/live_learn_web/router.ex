@@ -21,6 +21,7 @@ defmodule LiveLearnWeb.Router do
     live "/light", LightLive
     live "/license", LicenseLive
     live "/light-slider", LightSliderLive
+    live "/sales-dashboard", SalesDashboardLive
   end
 
   # Other scopes may use custom stacks.
