@@ -5,9 +5,25 @@ defmodule LiveLearnWeb.LicenseLive do
 
   import Number.Currency
 
+  @default_seats 2
+  @default_expire 1
+
   def mount(_params, _session, socket) do
-      socket = assign(socket, seats: 2, amount: Licenses.calculate(2))
-      {:ok, socket}
+    if connected?(socket) do
+      :timer.send_interval(1000, self(), :tick)
+    end
+
+    expiration_time = Timex.shift(Timex.now(), hours: @default_expire)
+    # socket = assign(socket, seats: @default_seats, amount: Licenses.calculate(2))
+    socket =
+      assign(socket,
+        seats: @default_seats,
+        expiration_time: expiration_time,
+        time_remaining: time_remaining(expiration_time),
+        amount: Licenses.calculate(@default_seats)
+      )
+
+    {:ok, socket}
   end
 
   def render(assigns) do
@@ -33,6 +49,11 @@ defmodule LiveLearnWeb.LicenseLive do
               <%= number_to_currency(@amount) %>
             </div>
           </div>
+
+          <p class="m-4 font-semibold text-indigo-800">
+            <%= @time_remaining %> left to save 20%
+          </p>
+
         </div>
       </div>
       """
@@ -51,5 +72,19 @@ defmodule LiveLearnWeb.LicenseLive do
     {:noreply, socket}
   end
 
+
+  def handle_info(:tick, socket) do
+    expiration_time = socket.assigns.expiration_time
+    socket = assign(socket, time_remaining: time_remaining(expiration_time))
+    {:noreply, socket}
+  end
+
+
+  defp time_remaining(expiration_time) do
+    Timex.Interval.new(from: Timex.now(), until: expiration_time)
+    |> Timex.Interval.duration(:seconds)
+    |> Timex.Duration.from_seconds()
+    |> Timex.format_duration(:humanized)
+  end
 
 end
