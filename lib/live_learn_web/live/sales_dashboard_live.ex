@@ -3,14 +3,15 @@ defmodule LiveLearnWeb.SalesDashboardLive do
 
   alias LiveLearn.Sales
 
-  def mount(_params, _session, socket) do
-    # because of doble sending (join and then connected)
-    # then handle_info(matching "tick")
-    if connected?(socket) do
-      :timer.send_interval(1000, self(), :tick)
-    end
+  @last_updated_at Timex.now()
 
-    socket = assign_stats(socket)
+  def mount(_params, _session, socket) do
+    socket =
+      socket
+      |> assign_stats()
+      |> assign(refresh: 1, last_upd: last_updated_at())
+
+    if connected?(socket), do: schedule_refresh(socket)
 
     {:ok, socket}
   end
@@ -46,10 +47,29 @@ defmodule LiveLearnWeb.SalesDashboardLive do
         </div>
       </div>
 
-      <button phx-click="refresh">
-        <img src="images/refresh.svg">
-        Refresh
-      </button>
+      <div class="controls">
+        <form phx-change="select-refresh">
+          <label for="refresh">
+            Refresh every:
+          </label>
+          <select name="refresh">
+            <%= options_for_select(refresh_options(), @refresh) %>
+          </select>
+        </form>
+
+        <button phx-click="refresh">
+          <img src="images/refresh.svg">
+          Refresh
+        </button>
+      </div>
+
+      <label for="last_upd">
+        Last updated at:
+      </label>
+      <span id="last_upd">
+        <%= @last_upd %>
+      </span>
+
     </div>
     """
   end
@@ -59,8 +79,15 @@ defmodule LiveLearnWeb.SalesDashboardLive do
     {:noreply, socket}
   end
 
+  def handle_event("select-refresh", %{"refresh" => refresh}, socket) do
+    refresh = String.to_integer(refresh)
+    socket = assign(socket, refresh: refresh)
+    {:noreply, socket}
+  end
+
   def handle_info(:tick, socket) do
     socket = assign_stats(socket)
+    schedule_refresh(socket)
     {:noreply, socket}
   end
 
@@ -69,8 +96,24 @@ defmodule LiveLearnWeb.SalesDashboardLive do
     assign(socket,
           new_orders: Sales.new_orders(),
           sales_amount: Sales.sales_amount(),
-          satisfaction: Sales.satisfaction()
+          satisfaction: Sales.satisfaction(),
+          last_upd: last_updated_at()
       )
+  end
+
+  ### Private ###
+
+  defp schedule_refresh(socket) do
+    Process.send_after(self(), :tick, socket.assigns.refresh * 1000)
+  end
+
+  defp refresh_options do
+    [{"1s", 1}, {"5s", 5},
+     {"15s", 15}, {"30s", 30}, {"60s", 60}]
+  end
+
+  defp last_updated_at do
+    Timex.format!(Timex.now(), "%H:%M:%S", :strftime)
   end
 
 end
