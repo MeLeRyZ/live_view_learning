@@ -8,7 +8,6 @@ defmodule LiveLearnWeb.LicenseLive do
   @default_seats 2
   @default_expire 1
 
-  @spec mount(any, any, Phoenix.LiveView.Socket.t()) :: {:ok, any}
   def mount(_params, _session, socket) do
     if connected?(socket) do
       :timer.send_interval(1000, self(), :tick)

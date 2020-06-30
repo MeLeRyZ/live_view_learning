@@ -1,0 +1,7 @@
+<h1>Sales Stuff</h1>
+
+<br>
+
+<%= live_render(@conn, LiveLearnWeb.SalesDashboardLive) %>
+<%= live_render(@conn, LiveLearnWeb.LicenseLive) %>
+<%= live_render(@conn, LiveLearnWeb.LicenseLive) %>
