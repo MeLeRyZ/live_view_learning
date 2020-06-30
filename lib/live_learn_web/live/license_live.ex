@@ -1,5 +1,5 @@
-defmodule LiveViewStudioWeb.LicenseLive do
-  use LiveViewStudioWeb, :live_view
+defmodule LiveLearnWeb.LicenseLive do
+  use LiveLearnWeb, :live_view
 
   alias LiveViewStudio.Licenses
   import Number.Currency
@@ -85,6 +85,11 @@ defmodule LiveViewStudioWeb.LicenseLive do
     |> Timex.Interval.duration(:seconds)
     |> Timex.Duration.from_seconds()
     |> Timex.format_duration(:humanized)
+  end
+
+  defp refresh_options do
+    [{"1s", 1}, {"5s", 5},
+     {"15s", 15}, {"30s", 30}, {"60s", 60}]
   end
 
 end
